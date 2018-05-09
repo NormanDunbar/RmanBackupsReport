@@ -3,5 +3,6 @@
 *.layout
 *.save
 *.depend
+*.exe
 bin/*
 obj/*
