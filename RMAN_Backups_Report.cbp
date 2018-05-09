@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RMAN Backups Report" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_gcc_compiler3264bit_tdm-gcc-64" />
+		<Option show_notes="0">
+			<notes>
+				<![CDATA[This project requires the OCILIB static library libociliba.lib in order to compile.
+At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
+			</notes>
+		</Option>
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/rmanBackups" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler3264bit_tdm-gcc-64" />
+				<Option parameters="misa01p1 pnet01p1 myhermes bilbo4327 1 &gt;rmanBackups.html 2&gt;rmanBackups.log" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/rmanBackups" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler3264bit_tdm-gcc-64" />
+				<Option parameters="misa01p1 pnet01p1 myhermes bilbo4327 1 " />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-m64" />
+			<Add directory="../../../Downloads/InstallKits/ocilib/ocilib-4.5.1-windows/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-m64" />
+			<Add library="../../../Downloads/InstallKits/ocilib/ocilib-4.5.1-windows/lib64/libociliba.a" />
+			<Add directory="../../../Downloads/InstallKits/ocilib/ocilib-4.5.1-windows/include/lib64" />
+		</Linker>
+		<Unit filename="Example.png" />
+		<Unit filename="SourceCode.docx" />
+		<Unit filename="SourceCode.rst" />
+		<Unit filename="UserGuide.docx" />
+		<Unit filename="UserGuide.rst" />
+		<Unit filename="build.cmd" />
+		<Unit filename="css.h" />
+		<Unit filename="html.h" />
+		<Unit filename="rmanBackups.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rmanBackups.h" />
+		<Unit filename="rmanBackups.html" />
+		<Unit filename="sql.h" />
+		<Unit filename="version.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

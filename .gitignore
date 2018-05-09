@@ -1,0 +1,7 @@
+*.docx
+*.zip
+*.layout
+*.save
+*.depend
+bin/*
+obj/*
