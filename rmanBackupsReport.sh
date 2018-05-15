@@ -22,20 +22,24 @@
 #
 # ./rmanBackupsReport .... 1>rmanBackupsReport.html
 #--------------------------------------------------------------------
-savedLibraryPath=${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/oracle/norman/ocilib/lib
-#--------------------------------------------------------------------
-base=/home/oracle/norman/rmanBackups
-logFile=${base}/rmanBackupsReports.log
-reportFile=${base}/rmanBackupsReports.html
-#--------------------------------------------------------------------
-${base}/rmanBackupsReport misa01p pnet01p ukmhprddb modd01p bilbo4327 1 1>${reportFile} 2>${logFile}
+export TZ="Europe/London"
+export LANG=en_GB.utf8
 
-#
-# Mail the report to the huk dba team.
-#
-# WARNING: Not Working. Yet.
-echo "Please find attached the RMAN Backups Report." | mail -s "RMAN Backups Report" -a ${reportFile} huk.dba@hermes-europe.co.uk
+savedLibraryPath=${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${ORACLE_HOME}/lib:/home/oracle/norman/ocilib/lib
+#--------------------------------------------------------------------
+exeBase=/home/oracle/norman/rmanBackups
+reportBase=/var/www/html/reports/oracle/backups
+#--------------------------------------------------------------------
+daysAgo=1
+pw=bilbo4327
+#--------------------------------------------------------------------
+
+for db in misa01p pnet01p ukmhprddb modd01p
+do
+   reportFile=${reportBase}/${db}/index.html
+   echo ${exeBase}/rmanBackupsReport ${db} ${pw} ${daysAgo} 1>${reportFile}
+   ${exeBase}/rmanBackupsReport ${db} ${pw} ${daysAgo} 1>${reportFile}
+done
 
 export LD_LIBRARY_PATH=${savedLibraryPath}
-
