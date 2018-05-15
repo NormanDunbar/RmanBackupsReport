@@ -32,7 +32,7 @@ exeBase=/home/oracle/norman/rmanBackups
 reportBase=/var/www/html/reports/oracle/backups
 #--------------------------------------------------------------------
 daysAgo=1
-pw=bilbo4327
+pw=*******
 #--------------------------------------------------------------------
 
 for db in misa01p pnet01p ukmhprddb modd01p
