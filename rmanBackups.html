@@ -46,9 +46,19 @@ text-align: left;
 padding-left: 3px;
 }
 
-.error {
+.red {
 font-weight: bold;
 color: red;
+}
+
+.amber {
+font-weight: bold;
+color: orange;
+}
+
+.green {
+font-weight: bold;
+color: green;
 }
 
 .narrow {
@@ -81,28 +91,57 @@ text-align: center;
 </head>
 <body>
 <h1>RMAN Backup Report</h1>
-<p class="bold">Report executed on: Fri May 04 09:15:18 2018.</p>
+<p class="bold">Report executed on: Tue May 15 12:35:43 2018.</p>
 
 <h2>misa01p1</h2>
 <p>The following RMAN backup jobs have been executed in the last 1 day:</p>
 <table>
 <tr><th class="narrow">JOB<br>ID</th><th class="date">START<br>TIME</th><th class="date">END<br>TIME</th><th class="narrow">RUN<br>TIME</th><th class="narrow">READ<br>SIZE</th><th class="narrow">WRITE<br>SIZE</th><th class="status">STATUS</th><th class="wide">TASKS EXECUTED IN JOB</th></tr>
-<tr><td class="number">24694</td><td>03/05/2018<br>12:00</td><td>03/05/2018<br>12:54</td><td>00:53:41</td><td class="number">457.91G</td><td class="number">167.22G</td><td class="normal">COMPLETED</td><td>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">24698</td><td>03/05/2018<br>14:01</td><td>03/05/2018<br>15:19</td><td>01:18:52</td><td class="number">378.07G</td><td class="number">99.44G</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP DB INCR<br>CONTROL FILE AND SPFILE AUTOBACK<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">24817</td><td>14/05/2018<br>12:00</td><td>14/05/2018<br>12:23</td><td>00:23:12</td><td class="number">167.43G</td><td class="number">58.66G</td><td class="green">COMPLETED</td><td>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">24821</td><td>14/05/2018<br>14:01</td><td>14/05/2018<br>14:39</td><td>00:38:03</td><td class="number">235.68G</td><td class="number">57.39G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP DB INCR<br>CONTROL FILE AND SPFILE AUTOBACK<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">24828</td><td>15/05/2018<br>12:00</td><td>15/05/2018<br>12:35</td><td>00:35:30</td><td class="number">409.92G</td><td class="number">144.51G</td><td class="amber">RUNNING</td><td>BACKUP ARCHIVELOG</td></tr>
+</table>
+
+<h2>pnet01p1</h2>
+<p>The following RMAN backup jobs have been executed in the last 1 day:</p>
+<table>
+<tr><th class="narrow">JOB<br>ID</th><th class="date">START<br>TIME</th><th class="date">END<br>TIME</th><th class="narrow">RUN<br>TIME</th><th class="narrow">READ<br>SIZE</th><th class="narrow">WRITE<br>SIZE</th><th class="status">STATUS</th><th class="wide">TASKS EXECUTED IN JOB</th></tr>
+<tr><td class="number">21463</td><td>14/05/2018<br>04:00</td><td>14/05/2018<br>04:00</td><td>00:00:42</td><td class="number">2.70G</td><td class="number">913.08M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21468</td><td>14/05/2018<br>10:00</td><td>14/05/2018<br>10:04</td><td>00:04:10</td><td class="number">50.80G</td><td class="number">16.14G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21473</td><td>14/05/2018<br>16:00</td><td>14/05/2018<br>16:04</td><td>00:04:04</td><td class="number">47.23G</td><td class="number">15.39G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21478</td><td>14/05/2018<br>22:00</td><td>14/05/2018<br>22:02</td><td>00:01:34</td><td class="number">13.40G</td><td class="number">4.52G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21483</td><td>14/05/2018<br>22:30</td><td>15/05/2018<br>01:29</td><td>02:59:16</td><td class="number">2.22T</td><td class="number">792.64G</td><td class="green">COMPLETED</td><td>BACKUP DB INCR<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG<br>DELETE</td></tr>
+<tr><td class="number">21489</td><td>15/05/2018<br>04:00</td><td>15/05/2018<br>04:01</td><td>00:00:43</td><td class="number">2.60G</td><td class="number">883.33M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21494</td><td>15/05/2018<br>10:00</td><td>15/05/2018<br>10:04</td><td>00:04:06</td><td class="number">47.17G</td><td class="number">14.99G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+</table>
+
+<h2>myhermes</h2>
+<p>The following RMAN backup jobs have been executed in the last 1 day:</p>
+<table>
+<tr><th class="narrow">JOB<br>ID</th><th class="date">START<br>TIME</th><th class="date">END<br>TIME</th><th class="narrow">RUN<br>TIME</th><th class="narrow">READ<br>SIZE</th><th class="narrow">WRITE<br>SIZE</th><th class="status">STATUS</th><th class="wide">TASKS EXECUTED IN JOB</th></tr>
+<tr><td class="number">25482</td><td>14/05/2018<br>00:00</td><td>14/05/2018<br>00:01</td><td>00:01:05</td><td class="number">1.14G</td><td class="number">498.33M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25487</td><td>14/05/2018<br>06:00</td><td>14/05/2018<br>06:01</td><td>00:00:60</td><td class="number">1.13G</td><td class="number">481.71M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25492</td><td>14/05/2018<br>12:00</td><td>14/05/2018<br>12:03</td><td>00:03:04</td><td class="number">3.32G</td><td class="number">1.41G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25497</td><td>14/05/2018<br>17:30</td><td>14/05/2018<br>19:04</td><td>01:34:38</td><td class="number">167.90G</td><td class="number">61.45G</td><td class="green">COMPLETED</td><td>BACKUP DB INCR<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG<br>DELETE</td></tr>
+<tr><td class="number">25499</td><td>14/05/2018<br>18:00</td><td>14/05/2018<br>18:05</td><td>00:05:16</td><td class="number">6.62G</td><td class="number">2.77G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25508</td><td>15/05/2018<br>00:00</td><td>15/05/2018<br>00:02</td><td>00:01:36</td><td class="number">1.92G</td><td class="number">839.91M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25513</td><td>15/05/2018<br>06:00</td><td>15/05/2018<br>06:01</td><td>00:01:08</td><td class="number">1.36G</td><td class="number">583.36M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">25518</td><td>15/05/2018<br>12:00</td><td>15/05/2018<br>12:02</td><td>00:01:53</td><td class="number">2.00G</td><td class="number">856.52M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
 </table>
 
 <h2>modd01p</h2>
 <p>The following RMAN backup jobs have been executed in the last 1 day:</p>
 <table>
 <tr><th class="narrow">JOB<br>ID</th><th class="date">START<br>TIME</th><th class="date">END<br>TIME</th><th class="narrow">RUN<br>TIME</th><th class="narrow">READ<br>SIZE</th><th class="narrow">WRITE<br>SIZE</th><th class="status">STATUS</th><th class="wide">TASKS EXECUTED IN JOB</th></tr>
-<tr><td class="number">20874</td><td>03/05/2018<br>00:00</td><td>03/05/2018<br>00:01</td><td>00:01:23</td><td class="number">4.19G</td><td class="number">995.74M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">20879</td><td>03/05/2018<br>06:00</td><td>03/05/2018<br>06:00</td><td>00:00:34</td><td class="number">1.05G</td><td class="number">398.03M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">20884</td><td>03/05/2018<br>12:00</td><td>03/05/2018<br>12:01</td><td>00:00:42</td><td class="number">1.08G</td><td class="number">415.85M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">20889</td><td>03/05/2018<br>17:30</td><td>03/05/2018<br>17:38</td><td>00:08:08</td><td class="number">13.01G</td><td class="number">3.48G</td><td class="normal">COMPLETED</td><td>BACKUP DB INCR<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG<br>DELETE</td></tr>
-<tr><td class="number">20895</td><td>03/05/2018<br>18:00</td><td>03/05/2018<br>18:00</td><td>00:00:24</td><td class="number">338.67M</td><td class="number">131.72M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">20900</td><td>04/05/2018<br>00:00</td><td>04/05/2018<br>00:01</td><td>00:01:23</td><td class="number">4.08G</td><td class="number">957.50M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
-<tr><td class="number">20905</td><td>04/05/2018<br>06:00</td><td>04/05/2018<br>06:00</td><td>00:00:34</td><td class="number">1.01G</td><td class="number">385.27M</td><td class="normal">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21163</td><td>14/05/2018<br>00:00</td><td>14/05/2018<br>00:01</td><td>00:01:19</td><td class="number">4.00G</td><td class="number">930.00M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21168</td><td>14/05/2018<br>06:00</td><td>14/05/2018<br>06:00</td><td>00:00:31</td><td class="number">859.81M</td><td class="number">319.42M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21173</td><td>14/05/2018<br>12:00</td><td>14/05/2018<br>12:01</td><td>00:00:45</td><td class="number">1.26G</td><td class="number">482.61M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21178</td><td>14/05/2018<br>17:30</td><td>14/05/2018<br>17:38</td><td>00:08:25</td><td class="number">13.83G</td><td class="number">3.75G</td><td class="green">COMPLETED</td><td>BACKUP DB INCR<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG<br>DELETE</td></tr>
+<tr><td class="number">21184</td><td>14/05/2018<br>18:00</td><td>14/05/2018<br>18:00</td><td>00:00:23</td><td class="number">454.10M</td><td class="number">171.77M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21189</td><td>15/05/2018<br>00:00</td><td>15/05/2018<br>00:01</td><td>00:01:30</td><td class="number">4.40G</td><td class="number">1.05G</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21194</td><td>15/05/2018<br>06:00</td><td>15/05/2018<br>06:00</td><td>00:00:33</td><td class="number">998.57M</td><td class="number">370.56M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
+<tr><td class="number">21199</td><td>15/05/2018<br>12:00</td><td>15/05/2018<br>12:00</td><td>00:00:33</td><td class="number">1.00G</td><td class="number">384.48M</td><td class="green">COMPLETED</td><td>DELETE<br>BACKUP ARCHIVELOG<br>CONTROL FILE AND SPFILE AUTOBACK<br>DELETE ARCHIVELOG</td></tr>
 </table>
 <hr>
-<p class="footer">Report created on Fri May 04 09:15:18 2018</p><p class="footer">by</p><p class="footer">rmanBackups</p></body>
+<p class="footer">Report created on Tue May 15 12:35:43 2018</p><p class="footer">by</p><p class="footer">C:\Users\hisg494\utilities\rmanBackups.exe</p></body>
 </html>

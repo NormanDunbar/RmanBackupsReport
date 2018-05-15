@@ -252,10 +252,25 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
     {
         const char *status = OCI_GetString(rs, COL_STATUS);
         char class[10] = {"normal"};
-        if (strcmp("COMPLETED", status)) {
-            strcpy(class , "error");
+        
+        /*
+         * Issue #3, RAG status required.
+         */
+        if (!strcmp("COMPLETED", status)) {
+            /* GREEN = All OK. No further action. */
+            strcpy(class, "green");
+        } else {
+            if (strstr(status, "WARNINGS") || !strcmp("RUNNING", status)) {
+                /* AMBER = OK, so far, or WARNINGs reported. Check again later. */
+                strcpy(class, "amber");
+            }  else {
+                if (strstr(status, "ERRORS") || !strcmp("FAILED", status)) {
+                    /* RED = Failed or ERRORs reported. Raise incident. */
+                    strcpy(class, "red");
+                }
+            }            
         }
-
+        
         fprintf(stdout,
                 tableRow,
                 OCI_GetInt(rs, COL_JOB_ID),
