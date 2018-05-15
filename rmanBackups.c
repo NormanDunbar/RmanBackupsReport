@@ -76,8 +76,7 @@ int main(int argc, char *argv[])
     for (int x = 1; x < argc - 2; x++) {
         fprintf(stderr, "%s ", argv[x]);
     }
-    fprintf(stderr, "\nUsing dba_user password '%s'\n", passWord);
-    fprintf(stderr, "Checking backups in the last %s day(s).\n", daysAgo);
+    fprintf(stderr, "\nChecking backups in the last %s day(s).\n", daysAgo);
     fprintf(stderr, "Report executed on %s.\n", displayTime);
 
     /*
