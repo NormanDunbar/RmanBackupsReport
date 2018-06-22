@@ -4,6 +4,8 @@
 *.save
 *.depend
 *.exe
+*.pdf
+*.rst
 bin/*
 obj/*
 rmanBackupsReport
