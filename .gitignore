@@ -6,3 +6,4 @@
 *.exe
 bin/*
 obj/*
+rmanBackupsReport
