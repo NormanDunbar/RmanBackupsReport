@@ -8,6 +8,8 @@
 # Norman Dunbar
 # 14/05/2018
 #--------------------------------------------------------------------
+# 22/06/2018 Needs $ORACLE_HOME/lib on LD_LUIBRARY_PATH to compile.
+#--------------------------------------------------------------------
 gcc=gcc
 srcFile=rmanBackups.c
 exeFile=rmanBackupsReport
@@ -15,6 +17,7 @@ includes=/home/oracle/norman/ocilib/include
 libLocation=/home/oracle/norman/ocilib/lib
 libName=ocilib
 options="-DOCI_IMPORT_LINKAGE -DOCI_CHARSET_ANSI"
+LIBPATH=$ORACLE_HOME/lib:$libLocation
 #--------------------------------------------------------------------
 # gcc -o rmanBackups rmanBackups.c -I ~/norman/ocilib/include -std=c99 -l ocilib -L ~/norman/ocilib/lib
-$gcc -o $exeFile $srcFile -I $includes -L $libLocation -std=c99 -l $libName $options
+LD_LIBRARY_PATH=$LIBPATH $gcc -o $exeFile $srcFile -I $includes -L $libLocation -std=c99 -l $libName $options
