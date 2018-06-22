@@ -11,7 +11,7 @@ Compiling
 ---------
 
 *   Make sure that OCILIB is installed.
-*   Edit ``build.cmd`` (Windows) or ``build.sh`` (Linux) and change the ``includes`` and ``libLocation`` settings to suit where you have installed OCILIB.
+*   Edit ``build.cmd`` (Windows) or ``build.sh`` (Linux) and change the ``includes`` and ``libLocation`` settings to suit where you have installed OCILIB. On Linux, make sure ``LIBPATH`` is correct for your ``$ORACLE_HOME`` - we need that in ``LD_LIBRARY_PATH`` at compile time.
 *   Save the file(s) and execute them as per your system.
 
 Execution
@@ -21,7 +21,7 @@ Once you have a compiled version of the software, probably called ``rmanBackupsR
 
 *   a list of space separated database alias names as per your client's ``tnsnames.ora`` file. Double quotes can be used around any of the alias names if there are *interesting* characters in the name, etc.
 
-*   The password for a used, defaulting to ``dba_user`` (yes, I *know*, I should have passed it on the command line, but that's not how *my* system is set up, and I'm lasy, ok!) - but you can change the default account in the file ``rmanBackups.c`` as mentioned above.
+*   The password for a used, defaulting to ``dba_user`` (yes, I *know*, I should have passed it on the command line, but that's not how *my* system is set up, and I'm lazy, ok!) - but you can change the default account in the file ``rmanBackups.c`` as mentioned above.
     
     It is assumed, because my systems does it, that all the databases in the list, will use the same account and password. You may need to run the report separately if this is diofferent at your installation. It's only a test application after all!
 
