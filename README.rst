@@ -3,7 +3,7 @@ RMANBackupsReport
 
 This is a test application to use the OCILIB Oracle database access tools from `<https://github.com/vrogier/ocilib>`_ on Windows and Linux. It seems to work.
 
-The application itself requires that OCILIB's lib directory and the ORACLE_HOME/liv directory have been installed on PATH and/or LD_LIBRARY_PATH.
+The application itself requires that OCILIB's lib directory and the ORACLE_HOME/lib directory have been installed on PATH and/or LD_LIBRARY_PATH.
 
 The application logs in to a database (or some databases) and reports back on the list of RMAN backups that have taken place since ``some days ago`` - which it does as the DBA_USER account, you can edit this in ``rmanBackups.c`` if you need to change it.
 
