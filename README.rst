@@ -31,7 +31,22 @@ For example:
 
 ..  code-block:: bash
 
-    ./rmanBackupsReport db_one db_two db_three secreat_password_string 3
+    ./rmanBackupsReport db_one db_two db_three secret_password_string 3
+
+Warnings on Execution
+~~~~~~~~~~~~~~~~~~~~~
+
+You may see the following warning when executing the application, it can be happily ignored:
+
+..  code-block:: none
+
+    Checking database ORCL
+    ORA-24347: Warning of a NULL column in an aggregate function
+    Error ORA-24347 detected
+    Checking complete.
+
+It is just a warning and in this case, we don't care.
+
 
 Output Report Files
 -------------------
@@ -40,13 +55,13 @@ The application produces n HTML report on stdout, so you should redirect that to
 
 ..  code-block:: bash
 
-    ./rmanBackupsReport db_one db_two db_three secreat_password_string 3 >rmanReport.html
+    ./rmanBackupsReport db_one db_two db_three secret_password_string 3 >rmanReport.html
 
 You also can, if you wsih, redirect stderr to a lgfile so that any errors are logged and not just displayed on screen.
 
 ..  code-block:: bash
 
-    ./rmanBackupsReport db_one db_two db_three secreat_password_string 3 >rmanReport.html 2>rmanReportErrors.log
+    ./rmanBackupsReport db_one db_two db_three secret_password_string 3 >rmanReport.html 2>rmanReportErrors.log
 
 Easy or what?
 
