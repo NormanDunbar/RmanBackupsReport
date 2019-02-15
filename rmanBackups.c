@@ -32,11 +32,40 @@
  *                              end of every database, not once at the end of
  *                              ALL databases. Sigh.
  *-----------------------------------------------------------------------------
+ * 15/02/2019   Norman Dunbar   Version 1.02.
+ *                              Attempting to discover why SQL*Plus, Toad and
+ *                              SQLDeveloper can run the query, but OCILIB gets
+ *                              "ORA-01489: result of string concatenation is
+ *                              too long" errors. Weird.
+ *-----------------------------------------------------------------------------
  */
 
 
 #include "ocilib.h"
 #include "rmanBackups.h"
+
+/*
+ * Global error handler for the OCILIB. Called automagically
+ * whenever an error occurs.
+ */
+void err_handler(OCI_Error *err)
+{
+    fprintf
+    (
+        stderr,
+        "\n********************************************************************************\n"
+        "The following database error has occurred:\n"
+        "Error Text: %s"
+        "********************************************************************************\n",
+        OCI_ErrorGetString(err)
+    );
+
+    /* Set my flag to show errors occurred */
+    /* But not for warnings ORA-24347 */
+    if ( OCI_ErrorGetOCICode(err) != 24347) {
+        dbErrors = TRUE;
+    }
+}
 
 /*
  * Start here...
@@ -77,11 +106,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s ", argv[x]);
     }
     fprintf(stderr, "\nChecking backups in the last %s day(s).\n", daysAgo);
-    fprintf(stderr, "Report executed on %s.\n", displayTime);
+    fprintf(stderr, "Report executed on %s.\n\n", displayTime);
 
     /*
      * Add the days into the SQLTemplate.
-     * BEWARE: This must be bigger than the code in SQLTemplate.
+     * BEWARE: The buffer must be bigger than the code size in SQLTemplate.
      * ALSO: The number of days appears TWICE!
      */
     char SQL[2048];
@@ -122,14 +151,14 @@ int main(int argc, char *argv[])
         /*
          * Where are we?
          */
-        fprintf(stderr, "\nChecking database %s\n", argv[x]);
+        fprintf(stderr, "Checking database %s\n", argv[x]);
 
         /*
          * Connect here ...
          */
         cn = OCI_ConnectionCreate(argv[x], "dba_user", passWord, OCI_SESSION_DEFAULT);
         if (dbErrors) {
-            fprintf(stderr, "Unable to connect to database (%s).\n", argv[x]);
+            fprintf(stderr, "Unable to connect to %s.\n", argv[x]);
             dbErrors = FALSE;
 
             /* Try next database. */
@@ -156,11 +185,11 @@ int main(int argc, char *argv[])
          * ORA-24347: Warning of a NULL column in an aggregate function
          * on the first row of the resultset and no output for that row.
          */
-        //OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
-        //if (dbErrors) {
-        //    fprintf(stderr, "%s: Unable to scroll statement.\n", argv[x]);
-        //    goto logOff;
-        //}
+        OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
+        if (dbErrors) {
+            fprintf(stderr, "%s: Unable to scroll statement.\n", argv[x]);
+            goto logOff;
+        }
 
         /*
          * Execution.
@@ -191,7 +220,7 @@ int main(int argc, char *argv[])
          * Logoff database.
          */
         OCI_ConnectionFree(cn);
-        fprintf(stderr, "Checking complete.\n");
+        fprintf(stderr, "Backup checking complete.\n\n");
         dbErrors = FALSE;
     }
 
@@ -200,7 +229,6 @@ int main(int argc, char *argv[])
      */
     HTMLFooter(displayTime, argv[0]);
 
-cleanUp:
     /*
      * Clean up database stuff.
      */
@@ -252,7 +280,7 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
     {
         const char *status = OCI_GetString(rs, COL_STATUS);
         char class[10] = {"normal"};
-        
+
         /*
          * Issue #3, RAG status required.
          */
@@ -268,9 +296,9 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
                     /* RED = Failed or ERRORs reported. Raise incident. */
                     strcpy(class, "red");
                 }
-            }            
+            }
         }
-        
+
         fprintf(stdout,
                 tableRow,
                 OCI_GetInt(rs, COL_JOB_ID),
@@ -291,16 +319,3 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
             "</table>\n"
            );
 }
-
-
-/*
- * Error handler for database operations.
- */
-void err_handler(OCI_Error *err)
-{
-    fprintf(stderr, "%s", OCI_ErrorGetString(err));
-    fprintf(stderr, "Error ORA-%05i detected\n", OCI_ErrorGetOCICode(err));
-    dbErrors = TRUE;
-}
-
-

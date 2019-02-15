@@ -55,7 +55,7 @@ set ccopts=-m64
 rem ---------------------------------------------------------------------------
 rem Where the OCILIB system lives.
 rem ---------------------------------------------------------------------------
-set base=C:\Users\hisg494\Downloads\InstallKits\ocilib\ocilib-4.5.1-windows
+set base=C:\Users\hisg494\Downloads\InstallKits\ocilib\ocilib-4.6.0-windows
 
 rem ---------------------------------------------------------------------------
 rem Assume 64bit libraries are required.
