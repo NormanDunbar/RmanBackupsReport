@@ -44,12 +44,18 @@
 #include "ocilib.h"
 #include "rmanBackups.h"
 
+/* Global database name */
+char *databaseName;
+
+
 /*
  * Global error handler for the OCILIB. Called automagically
  * whenever an error occurs.
  */
 void err_handler(OCI_Error *err)
 {
+    int errorCode = OCI_ErrorGetOCICode(err);
+
     fprintf
     (
         stderr,
@@ -62,8 +68,16 @@ void err_handler(OCI_Error *err)
 
     /* Set my flag to show errors occurred */
     /* But not for warnings ORA-24347 */
-    if ( OCI_ErrorGetOCICode(err) != 24347) {
+    if (errorCode != 24347) {
         dbErrors = TRUE;
+    }
+
+    // This is not ideal. If we hit an ORA-01489 error, it means that there
+    // were too many sub-tasks or a single job and it has blown out the size
+    // of a varchar. Tell the user.
+    if (errorCode == 1489) {
+        fprintf(stdout, dbHeading, databaseName);
+        fprintf(stdout, "<strong>Too many jobs yesterday, exceeded Oracle's VARCHAR2 limit of 4,000 characters.</strong>");
     }
 }
 
@@ -102,6 +116,7 @@ int main(int argc, char *argv[])
      */
     fprintf(stderr, "\nRmanBackups - version %.2f\n\n", VERSION);
     fprintf(stderr, "Checking databases: ");
+
     for (int x = 1; x < argc - 2; x++) {
         fprintf(stderr, "%s ", argv[x]);
     }
@@ -113,8 +128,9 @@ int main(int argc, char *argv[])
      * BEWARE: The buffer must be bigger than the code size in SQLTemplate.
      * ALSO: The number of days appears TWICE!
      */
-    char SQL[2048];
+    char SQL[4096];
     sprintf(SQL, SQLTemplate, daysAgo, daysAgo);
+    //sprintf(SQL, SQLTemplate);
 
 
     /*
@@ -139,7 +155,7 @@ int main(int argc, char *argv[])
     /*
      *======================================================================
      * Any time we bale out, we must clean up. BEWARE!
-     * This means we have to exit via cleanUp below and end the OCI session.
+     * This means we have to exit via logOff below and end the OCI session.
      *======================================================================
      */
 
@@ -152,6 +168,7 @@ int main(int argc, char *argv[])
          * Where are we?
          */
         fprintf(stderr, "Checking database %s\n", argv[x]);
+        databaseName = argv[x];
 
         /*
          * Connect here ...
@@ -185,11 +202,11 @@ int main(int argc, char *argv[])
          * ORA-24347: Warning of a NULL column in an aggregate function
          * on the first row of the resultset and no output for that row.
          */
-        OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
-        if (dbErrors) {
-            fprintf(stderr, "%s: Unable to scroll statement.\n", argv[x]);
-            goto logOff;
-        }
+        //OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
+        //if (dbErrors) {
+        //    fprintf(stderr, "%s: Unable to scroll statement.\n", argv[x]);
+        //    goto logOff;
+        //}
 
         /*
          * Execution.
@@ -307,7 +324,7 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
                 OCI_GetString(rs, COL_RUN_TIME),
                 OCI_GetString(rs, COL_INPUT_SIZE),
                 OCI_GetString(rs, COL_WRITTEN_SIZE),
-                class, status, //OCI_GetString(rs, COL_STATUS),
+                class, status,
                 OCI_GetString(rs, COL_TASKS)
                );
     }
