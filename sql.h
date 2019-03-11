@@ -50,7 +50,7 @@ char *SQLTemplate =
     "join    taskList\n"
     "    on  (jobs.session_key = taskList.session_recid)\n"
     "where   jobs.start_time >= trunc(sysdate) - %s \n"
-    "order   by jobs.start_time asc";
+    "order   by jobs.start_time desc";
 
 /*
    It would be nice if the following worked. It gets the data from the database
