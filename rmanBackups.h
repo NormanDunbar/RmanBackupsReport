@@ -10,6 +10,8 @@
 /*
  * An easy way to remember the columns in the query!
  */
+
+ /*
 #define COL_JOB_ID          1
 #define COL_START_TIME      2
 #define COL_END_TIME        3
@@ -18,7 +20,7 @@
 #define COL_WRITTEN_SIZE    6
 #define COL_STATUS          7
 #define COL_TASKS           8
-
+*/
 
 /*
  * Flag that indicates if database errors occurred.

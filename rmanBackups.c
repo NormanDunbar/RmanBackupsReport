@@ -211,6 +211,8 @@ int main(int argc, char *argv[])
         /*
          * Execution.
          */
+        //OCI_ExecuteStmt(st, "alter session set tracefile_identifier=NORMAN");
+        //OCI_ExecuteStmt(st, "alter session set events '10046 trace name context forever, level 12'");
         OCI_ExecuteStmt(st, SQL);
         if (dbErrors) {
             fprintf(stderr, "%s: Unable to execute statement.\n", argv[x]);
@@ -295,7 +297,7 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
      */
     while (OCI_FetchNext(rs))
     {
-        const char *status = OCI_GetString(rs, COL_STATUS);
+        const char *status = OCI_GetString2(rs, "STATUS");
         char class[10] = {"normal"};
 
         /*
@@ -318,16 +320,16 @@ void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
 
         fprintf(stdout,
                 tableRow,
-                OCI_GetInt(rs, COL_JOB_ID),
-                OCI_GetString(rs, COL_START_TIME),
-                OCI_GetString(rs, COL_END_TIME),
-                OCI_GetString(rs, COL_RUN_TIME),
-                OCI_GetString(rs, COL_INPUT_SIZE),
-                OCI_GetString(rs, COL_WRITTEN_SIZE),
+                OCI_GetInt2(rs, "JOB_ID"),
+                OCI_GetString2(rs, "START_TIME"),
+                OCI_GetString2(rs, "END_TIME"),
+                OCI_GetString2(rs, "RUN_TIME"),
+                OCI_GetString2(rs, "INPUT_SIZE"),
+                OCI_GetString2(rs, "WRITTEN_SIZE"),
                 class, status,
-                OCI_GetString(rs, COL_TASKS)
+                OCI_GetString2(rs, "TASKS_EXECUTED_IN_JOB")
                );
-    }
+}
 
     /*
      * Close down the table for this database.
