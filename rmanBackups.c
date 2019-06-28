@@ -1,18 +1,17 @@
 /*
  *=============================================================================
- * This code connected to the database(s) supplied on the command line, as the
- * DBA_USER, using the password supplied and retrieves details of the RMAN
- * backups taken since the start of 'yesterday'.
+ * This code connects to the database(s) supplied in the parameter file, as the
+ * using the supplied credentials and retrieves details of the RMAN backups
+ * taken since the start of 'n' days ago.
  *
- * rmanBackups database [database ...] password how_many_days
+ *  rmanBackups parameter_file_name [ >Report_file_name.html [ 2>Log_name.log]]
  *
  * The result will be some HTML which is written to stdout, so if you need to
- * view it in a browser, best you redirect to a file, as follows:
+ * view it in a browser, best you redirect to a file. Errors etc are written to
+ * the logfile on stderr, which may also be redirected. The default is to the
+ * display.
  *
- * rmanBackups database [database ...] password  how_many_days >backups.html
- *
- * you can now view backups.html in a browser.
- *
+ * The report can be viewed in your browser.
  *=============================================================================
  */
 
@@ -21,22 +20,49 @@
  * AMENDMENT HISTORY
  *-----------------------------------------------------------------------------
  * 01/05/2018   Norman Dunbar   Version 1.00.
- *                              Created new utility due to a lack of OEM access
- *                              to the repository where such information may be
- *                              available. OEM reports were no good either. :-(
+ *
+ * Created new utility due to a lack of OEM access to the repository where such
+ * information may be available. OEM reports were no good either. :-(
  *-----------------------------------------------------------------------------
  * 03/05/2018   Norman Dunbar   Version 1.01.
- *                              Added current date and time to the output.
- *                              Added footer text.
- *                              Fixed bug where HTMLFooter() was called at the
- *                              end of every database, not once at the end of
- *                              ALL databases. Sigh.
+ *
+ * Added current date and time to the output.
+ * Added footer text.
+ * Fixed bug where HTMLFooter() was called at the end of every database, not
+ * just once at the end of ALL databases. Sigh.
  *-----------------------------------------------------------------------------
  * 15/02/2019   Norman Dunbar   Version 1.02.
- *                              Attempting to discover why SQL*Plus, Toad and
- *                              SQLDeveloper can run the query, but OCILIB gets
- *                              "ORA-01489: result of string concatenation is
- *                              too long" errors. Weird.
+ *
+ * Attempting to discover why SQL*Plus, Toad and SQLDeveloper can run the
+ * query, but OCILIB gets "ORA-01489: result of string concatenation is
+ * too long" errors. Weird. (Not weird - VARCHAR2 limits.)
+ *-----------------------------------------------------------------------------
+ * ??/??/2019   Norman Dunbar   Versions 1.03.
+ *
+ * Made the report more readable and easier to see where the database backup
+ * was in amongst all the archive log backups etc.
+ *-----------------------------------------------------------------------------
+ * 06/06/2019   Norman Dunbar   Version 1.04.
+ *
+ * Report ordered descending by start_time now - easier to find the latest
+ * backup details as they are at the top.
+ *
+ * Allow "C##" in front of the database name to force a connection to the root
+ * database for a container/pluggable setup. (Requires a 'common' C##username.)
+ *-----------------------------------------------------------------------------
+ * 26/06/2019   Norman Dunbar   Version 1.05.
+ *
+ * The stuff in 1.04 about "C##" in the database name has been removed and the
+ * database details are supplied in a text file now. The format is:
+ *
+ *      "username/password@alias:SYSDBA?daysAgo"
+ *
+ * one entry per line. Blank lines and lines with '#' in column 1 are
+ * ignored.
+ *
+ * The SQL query had to be changed to allow it to run in a standby database
+ * which is not open. The 'with' clause was a problem, strange, as it can
+ * easily be joined as an inline view. Hmm.
  *-----------------------------------------------------------------------------
  */
 
@@ -44,8 +70,11 @@
 #include "ocilib.h"
 #include "rmanBackups.h"
 
-/* Global database name */
-char *databaseName;
+/* Global database name - for error reporting. */
+char *gDatabaseName;
+
+/* Global connection string limits. */
+#define MAX_CONNECTION_STRING 255
 
 
 /*
@@ -59,10 +88,10 @@ void err_handler(OCI_Error *err)
     fprintf
     (
         stderr,
-        "\n********************************************************************************\n"
-        "The following database error has occurred:\n"
-        "Error Text: %s"
-        "********************************************************************************\n",
+        "\n--------------------------------------------------------------------------------\n"
+        "The following database warning/error has occurred:\n"
+        "%s"
+        "--------------------------------------------------------------------------------\n\n",
         OCI_ErrorGetString(err)
     );
 
@@ -76,30 +105,97 @@ void err_handler(OCI_Error *err)
     // were too many sub-tasks or a single job and it has blown out the size
     // of a varchar. Tell the user.
     if (errorCode == 1489) {
-        fprintf(stdout, dbHeading, databaseName);
+        fprintf(stdout, dbHeading, gDatabaseName);
         fprintf(stdout, "<strong>Too many jobs yesterday, exceeded Oracle's VARCHAR2 limit of 4,000 characters.</strong>");
     }
 }
 
+
+/*
+ * Split a connection string into the three separate parts required.
+ */
+boolean splitConnectionString(const char *connectionString, char **username, char **password, char **alias, char **daysAgo, boolean *sysDBA) {
+    // Example:
+    //
+    // 012345678901234567890123456789
+    // ----/----@-----:------?-------
+    // user/pass@alias:SYSDBA?days
+    //
+    // Length = 27, indexes = 0 - 26.
+    //
+    // User = 0 -> '/' - 1.
+    // User = 0 -> 3 = 4 characters.
+    //
+    // Pass = '/' + 1 -> '@' - 1.
+    // Pass = 5 -> 8 = 4 characters.
+    //
+    // SYSDBA (optional) = ':' + 1 -> '?' - 1.
+    // Should be 6 characters, always.
+    //
+    // Alias = '@' + 1 - len() - 1.
+    // Alias = 10 -> 14 = 5 characters.
+
+
+    // Find slash and 'at' characters.
+    char *slash = strchr(connectionString, '/');
+    char *at = strchr(connectionString, '@');
+    char *qmark = strchr(connectionString, '?');
+    char *colon = strchr(connectionString, ':');
+
+    // Convert to strings. Username will be the whole string
+    // if no separators found.
+    // Casting to lose the const'ness warnings.
+    *username = (char *)connectionString;
+
+    // Do we have a password?
+    if (slash) {
+        *slash = '\0';
+        *password = slash + 1;
+    } else {
+        fprintf(stderr, "'%s': No slash (/) found.\n", connectionString);
+        return FALSE;
+    }
+
+    // Do we have an alias?
+    if (at) {
+        *at = '\0';
+        *alias = at + 1;
+    } else {
+        fprintf(stderr, "'%s': No 'at' (@) found.\n", connectionString);
+        return FALSE;
+    }
+
+    // Do we have a days ago number?
+    if (qmark) {
+        *qmark = '\0';
+        *daysAgo = qmark + 1;
+    } else {
+        fprintf(stderr, "'%s': No 'question mark' (?) found.\n", connectionString);
+        return FALSE;
+    }
+
+    // If we get here, we have a usename, password, alias and days ago values.
+    // Do we have (optional) SYSDBA? We assume not, unless we find ':SYSDBA'
+    // whereupon we assume true
+    *sysDBA = FALSE;
+    if (colon) {
+        if (!strncasecmp(":SYSDBA", colon, 7)) {
+            *sysDBA = TRUE;
+        }
+
+        // Terminate the alias name.
+        *colon = '\0';
+    }
+
+    return TRUE;
+}
 /*
  * Start here...
  */
 int main(int argc, char *argv[])
 {
     /*
-     * We need at least 4 parameters. (Program name, database, password, days.)
-     */
-    if (argc < 4) {
-        fprintf(stderr, "\nUSAGE: %s database [ database ...] Password how_many_days\n\n", argv[0]);
-        fprintf(stderr, "EXAMPLE: %s pnet01p1 misa01p01 ukmhprddb TopSecret 5\n", argv[0]);
-        exit(1);
-    }
-
-    char *passWord = argv[argc - 2];
-    char *daysAgo = argv[argc - 1];
-
-    /*
-     * Time related stuff.
+     * Time related stuff for the report.
      */
     time_t currentTime = time(NULL);
     char *displayTime;
@@ -112,16 +208,181 @@ int main(int argc, char *argv[])
     }
 
     /*
-     * Display details of command line.
+     * Database related stuff.
      */
-    fprintf(stderr, "\nRmanBackups - version %.2f\n\n", VERSION);
-    fprintf(stderr, "Checking databases: ");
+    char *databaseName;
+    char *userName;
+    char *passWord;
+    char *daysAgo;
+    boolean sysDBA;
 
-    for (int x = 1; x < argc - 2; x++) {
-        fprintf(stderr, "%s ", argv[x]);
+    /*
+     * We need 2 parameters. (Program name and parameter file name.)
+     */
+    if (argc != 2) {
+        fprintf(stderr, "\nUSAGE: %s <credentails file>\n\n", argv[0]);
+        fprintf(stderr, "EXAMPLE: %s logins.txt\n", argv[0]);
+        fprintf(stderr, "\n\nWhere the format of each line in the file is:\n");
+        fprintf(stderr, "\nusername/password@tns_alias:SYSDBA?Days\n\n");
+        fprintf(stderr, "Blank lines and those beginning with # are ignored.\n");
+        fprintf(stderr, "\n The colon (:) and SYSDBA can be omitted if required.\n");
+        exit(1);
     }
-    fprintf(stderr, "\nChecking backups in the last %s day(s).\n", daysAgo);
-    fprintf(stderr, "Report executed on %s.\n\n", displayTime);
+
+    /*
+     * Parameter file stuff.
+     */
+    FILE *pFile;
+    char current[MAX_CONNECTION_STRING + 1];
+
+    pFile = fopen(argv[1], "r");
+    if (pFile == NULL || ferror(pFile)) {
+        fprintf(stderr, "\nCannot open file '%s'\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * Display report details in the log file on stderr.
+     */
+    fprintf(stderr, "RmanBackups - version %.2f\n", VERSION);
+    fprintf(stderr, "Backup Report executed on %s.\n\n", displayTime);
+
+    /*
+     * Start the HTML file.
+     */
+    HTMLHeader(displayTime);
+
+    /*
+     * Initialise the Oracle OCI environment.
+     */
+    if (!OCI_Initialize(err_handler, NULL, OCI_ENV_DEFAULT)) {
+        fprintf(stderr, "Cannot initialise the Oracle Environment.\n");
+        return EXIT_FAILURE;
+    }
+
+    /*
+     * The main loop starts here ....
+     */
+    while (1) {
+        // Fetch a connection string.
+        fgets(current, MAX_CONNECTION_STRING, pFile);
+
+        // Errors reading?
+        if (ferror(pFile)) {
+            fprintf(stderr, "\nOops! Read error on '%s'\n", argv[1]);
+            break;
+        }
+
+        // End of file?
+        if (feof(pFile)) {
+                break;
+        }
+
+        // fgets() doesn't delete the '\n' if one is found.
+        current[strlen(current) -1] = '\0';
+
+        // Comment lines have '#' at the start.
+        if (*current == '#') {
+            continue;
+        }
+
+        // Blank lines are also ignored.
+        if (*current == '\0') {
+            continue;
+        }
+
+
+        // All good - split.
+        if (splitConnectionString(current, &userName, &passWord, &databaseName, &daysAgo, &sysDBA)) {
+
+            // Update gloabal database name for errors.
+            gDatabaseName = databaseName;
+
+            // Add database headings to the report.
+            HTMLDatabaseHeading(databaseName, daysAgo);
+
+            // Check this database
+            if (!checkDatabase(userName, passWord, databaseName, daysAgo, sysDBA)) {
+                fprintf(stderr, "Checking FAILED.\n");
+                fprintf(stderr, "================================================================================\n\n");
+            }
+
+        } else {
+            // Log errors encountered for this connection string.
+            fprintf(stderr, "Failed to split connection string '%s', one or more parts missing.\n", current);
+        }
+    }       // End While(1)
+
+    /*
+     * Clean up database stuff.
+     */
+    OCI_Cleanup();
+
+    /*
+     * Close the parameter file now, no longer needed.
+     */
+    fclose(pFile);
+
+    /*
+     * Print the report footers.
+     */
+    HTMLFooter(displayTime, argv[0]);
+
+    if (dbErrors) {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}   // End of main().
+
+
+
+/*
+ * Login and check a database. This assumes that the OCI Environment has been initialised.
+ */
+boolean checkDatabase(const char *userName, const char *passWord, const char *databaseName, const char *daysAgo, boolean sysDBA) {
+
+    OCI_Connection* cn;
+    OCI_Statement* st;
+    OCI_Resultset* rs;
+
+    /*
+     * Where are we?
+     */
+    fprintf(stderr, "\n================================================================================\n");
+    fprintf(stderr, "*** %s ***\n", databaseName);
+    fprintf(stderr, "================================================================================\n");
+    if (!sysDBA) {
+        fprintf(stderr, "Checking '%s@%s' for backups in the last %s day(s).\n", userName, databaseName, daysAgo);
+    } else {
+        fprintf(stderr, "Checking '%s@%s as SYSDBA' for backups in the last %s day(s).\n", userName, databaseName, daysAgo);
+    }
+
+
+    /*
+     * Connect here ...
+     */
+    if (sysDBA) {
+        /* Connect as SYSDBA */
+        cn = OCI_ConnectionCreate(databaseName, userName, passWord, OCI_SESSION_SYSDBA);
+    } else {
+        /* Connect as NORMAL */
+        cn = OCI_ConnectionCreate(databaseName, userName, passWord, OCI_SESSION_DEFAULT);
+    }
+    if (dbErrors) {
+        fprintf(stderr, "Unable to connect to '%s@%s'.\n", userName, databaseName);
+        dbErrors = FALSE;
+
+        /* Try next database. */
+        return FALSE;
+    }
+
+    /*
+     *======================================================================
+     * Any time we bale out now, we must log off the database. BEWARE!
+     * This means we have to exit via logOff below and end the DB session.
+     *======================================================================
+     */
 
     /*
      * Add the days into the SQLTemplate.
@@ -134,137 +395,64 @@ int main(int argc, char *argv[])
 
 
     /*
-     * Start the HTML file.
+     * Statement creation.
      */
-    HTMLHeader(displayTime);
-
-
-    /*
-     * Database stuff.
-     */
-    OCI_Connection* cn;
-    OCI_Statement* st;
-    OCI_Resultset* rs;
-
-
-    if (!OCI_Initialize(err_handler, NULL, OCI_ENV_DEFAULT)) {
-        fprintf(stderr, "Cannot initialise the Oracle Environment.\n");
-        return EXIT_FAILURE;
-    }
-
-    /*
-     *======================================================================
-     * Any time we bale out, we must clean up. BEWARE!
-     * This means we have to exit via logOff below and end the OCI session.
-     *======================================================================
-     */
-
-    /*
-     * Loop around all the supplied databases.
-     */
-    for (int x = 1; x < argc - 2; x++) {
-
-        /*
-         * Where are we?
-         */
-        fprintf(stderr, "Checking database %s\n", argv[x]);
-        databaseName = argv[x];
-
-        /*
-         * Connect here ...
-         */
-        cn = OCI_ConnectionCreate(argv[x], "dba_user", passWord, OCI_SESSION_DEFAULT);
-        if (dbErrors) {
-            fprintf(stderr, "Unable to connect to %s.\n", argv[x]);
-            dbErrors = FALSE;
-
-            /* Try next database. */
-            continue;
-        }
-
-        /*
-         *======================================================================
-         * Any time we bale out now, we must log off the database. BEWARE!
-         * This means we have to exit via logOff below and end the DB session.
-         *======================================================================
-         */
-
-        /*
-         * Statement creation.
-         */
-        st = OCI_StatementCreate(cn);
-        if (dbErrors) {
-            fprintf(stderr, "%s: Unable to create statement.\n", argv[x]);
-            goto logOff;
-        }
-
-        /* BEWARE: This isn't working here! It gives a warning
-         * ORA-24347: Warning of a NULL column in an aggregate function
-         * on the first row of the resultset and no output for that row.
-         */
-        //OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
-        //if (dbErrors) {
-        //    fprintf(stderr, "%s: Unable to scroll statement.\n", argv[x]);
-        //    goto logOff;
-        //}
-
-        /*
-         * Execution.
-         */
-        //OCI_ExecuteStmt(st, "alter session set tracefile_identifier=NORMAN");
-        //OCI_ExecuteStmt(st, "alter session set events '10046 trace name context forever, level 12'");
-        OCI_ExecuteStmt(st, SQL);
-        if (dbErrors) {
-            fprintf(stderr, "%s: Unable to execute statement.\n", argv[x]);
-            goto logOff;
-        }
-
-        /*
-         * Grab results.
-         */
-        rs = OCI_GetResultset(st);
-        if (dbErrors) {
-            fprintf(stderr, "%s: Unable to fetch results.\n", argv[x]);
-            goto logOff;
-        }
-
-
-        /*
-         * Print database details.
-         */
-        HTMLDatabase(argv[x], rs, daysAgo);
-
-    logOff:
-        /*
-         * Logoff database.
-         */
-        OCI_ConnectionFree(cn);
-        fprintf(stderr, "Backup checking complete.\n\n");
-        dbErrors = FALSE;
-    }
-
-    /*
-     * Finish HTML file.
-     */
-    HTMLFooter(displayTime, argv[0]);
-
-    /*
-     * Clean up database stuff.
-     */
-    OCI_Cleanup();
-
+    st = OCI_StatementCreate(cn);
     if (dbErrors) {
-        return EXIT_FAILURE;
+        fprintf(stderr, "Unable to create SQL query.\n\n");
+        goto logOff;
     }
 
-    return EXIT_SUCCESS;
+    /* BEWARE: This isn't working here! It gives a warning
+     * ORA-24347: Warning of a NULL column in an aggregate function
+     * on the first row of the resultset and no output for that row.
+     */
+    //OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
+    // ...
+
+    /*
+     * Execution.
+     */
+    //OCI_ExecuteStmt(st, "alter session set tracefile_identifier=BACKUP_CHECKER");
+    //OCI_ExecuteStmt(st, "alter session set events '10046 trace name context forever, level 12'");
+    OCI_ExecuteStmt(st, SQL);
+    if (dbErrors) {
+        fprintf(stderr, "Unable to execute SQL query.\n\n");
+        goto logOff;
+    }
+
+    /*
+     * Grab results.
+     */
+    rs = OCI_GetResultset(st);
+    if (dbErrors) {
+        fprintf(stderr, "Unable to fetch query results.\n\n");
+        goto logOff;
+    }
+
+
+    /*
+     * Print database details.
+     */
+    HTMLDatabase(rs);
+
+logOff:
+    /*
+     * Logoff database.
+     */
+    OCI_ConnectionFree(cn);
+    fprintf(stderr, "Backup checking complete.\n");
+    fprintf(stderr, "================================================================================\n\n");
+    dbErrors = FALSE;
+
+    return TRUE;
 }
 
 
 /*
  * Print out the HTML file headings, plus the actual content main heading.
  */
-void HTMLHeader(char *displayTime) {
+void HTMLHeader(const char *displayTime) {
     fprintf(stdout, htmlHeader, css, displayTime);
 }
 
@@ -272,7 +460,7 @@ void HTMLHeader(char *displayTime) {
 /*
  * Print out the HTML file trailers to close down the file.
  */
-void HTMLFooter(char *displayTime, char *programName) {
+void HTMLFooter(const char *displayTime, const char *programName) {
     fprintf(stdout, htmlFooter, displayTime, programName);
 }
 
@@ -280,15 +468,21 @@ void HTMLFooter(char *displayTime, char *programName) {
 /*
  * Print out the details of a single database backup list.
  */
-void HTMLDatabase(char *database, OCI_Resultset* rs, char *days) {
+void HTMLDatabaseHeading(const char *database, const char *days) {
     /*
-     * Print the header and introduction.
+     * Print the Database header and introduction.
      */
     fprintf(stdout, dbHeading, database);
     fprintf(stdout, dbParagraph, days, (strcmp(days, "1") ? "s" : ""));
+}
 
+
+/*
+ * Print out the details of a single database backup list.
+ */
+void HTMLDatabase(OCI_Resultset* rs) {
     /*
-     * Now the HTML table and headings.
+     * Print the HTML table and headings.
      */
     fprintf(stdout, tableHeadings);
 
