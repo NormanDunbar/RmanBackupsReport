@@ -2,6 +2,7 @@
 #define __RMANBACKUPS_H__
 
 #include <time.h>
+#include <strings.h>
 #include "css.h"
 #include "sql.h"
 #include "version.h"
