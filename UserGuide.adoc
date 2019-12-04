@@ -57,7 +57,7 @@ The format of each line is as follows:
 
 [source]
 ----
-Username/password@alias [:SYSDBA]?days_ago_to_check
+Username/password@alias[:SYSDBA]?days_ago_to_check
 ----
 
 The fields are:
@@ -95,13 +95,13 @@ If you don't have an alias in your `tnsnames.ora` for a particular database, the
 
 [WARNING]
 ====
-*Pluggable databases*. The dba_user is not able to be used in a pluggable database as it cannot exist in the container/root. The user there has to be a _common_ `C##` user instead and must be created in the container, not the pluggable. The view `V$RMAN__BACKUP_JOB_DETAILS` cannot be read by any user in a pluggable database, only in the container.
+*Pluggable databases*. The login username has to be a _common_ `C##` user and must be created in the container, not the pluggable database. The view `V$RMAN_BACKUP_JOB_DETAILS` cannot be read by any user in a pluggable database, only in the container, hence the need to logon to the container than the pluggable database. Not helpful Oracle! (Pluggable users can, of course, see `V$RMAN_STATUS` - consistent or what?)
 
 To get around this, you must:
 
-* Create `C##DBA_USER` in the _container_, with the appropriate password, and the usual privileges;
+* Create a `C##USER` in the _container_, with the appropriate password, and the usual privileges;
 * Add an alias to the `TNSNAMES.ORA` file for the _container_ database;
-* Configure the parameter file with the _container_ database login credentials (and SYSDBA).
+* Configure the backup checker's parameter file with the _container_ database login credentials (and SYSDBA).
 ====
 
 ==== Output File
@@ -130,6 +130,20 @@ The report includes the following details:
 * The job's final status - 'COMPLETED' is good. Other values may not be so good and should be brought to the attention of the German DBAs who are responsible for the backup jobs.
 * The tasks executed by the job. This is a list of the various steps that RMAN execute within the job.
 
+From version 1.06 onwards, there is a backup summary (at the end of the report) which lists the details of the _most recent_ database backup (not archived logs, not pfile etc, the database itself) and also, the count of the number of database backups taken in the report period for this particular database. A link in the summary table takes you to the full details for that database, in the main body of the report.
+
+[NOTE]
+====
+Only databases which have had at least one database backup, as opposed to just Archived logs or parameter/control files etc, will be listed in the summary table.
+====
+
+A helpful link at the top of the report takes you directly to the summary as per this image:
+
+image:reportHeader.png[Example Report Header.]
+
+
 An example report can be found in the software repository, it is named `rmanBackups.html`.
 
 image:Example.png[Example RMAN Backup Report.]
+
+You can see the summary table in the above image, as well as a list of backups for a single database. This database backs up everything in one job, other databases will have separate jobs for the database and the archived logs etc.
