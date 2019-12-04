@@ -7,6 +7,14 @@ rem
 rem Norman Dunbar
 rem 01/05/2018.
 rem ===========================================================================
+rem WARNING:
+rem While there is the option to build this application as 32 and 64 bits, you
+rem cannot build it in a particular bit size if your current Oracle Client
+rem is not the same bit size. So, if yo utry, you will get lots of errors
+rem telling you about 'undefined reference to OCI_whatever'. 
+rem You have been warned. ;o)
+rem ===========================================================================
+
 
 rem ===========================================================================
 rem SETINGS
@@ -16,14 +24,14 @@ rem ---------------------------------------------------------------------------
 rem mingw32 = location of the 32 bit mingw compiler's bin folder. Which may be 
 rem           the same. If it is, change ccopts to include -m32 as well.
 rem ---------------------------------------------------------------------------
-rem gcc = the compiler executable filename.
+rem gcc = the compiler executable filename - within mingw32/mingw64.
 rem ---------------------------------------------------------------------------
 rem ccopts = compiler options. -m32, for example, if compiling 32 bit code with
 rem          the same compiler executable as the 64 bit compiler.
 rem ---------------------------------------------------------------------------
 rem base = the ocilib installation directory.
 rem ---------------------------------------------------------------------------
-rem libs = where the b64 or 32 bit library file 'libociliba.a' can be found.
+rem libs = where the 64 or 32 bit library file 'libociliba.a' can be found.
 rem ---------------------------------------------------------------------------
 rem includes = where the ocilib header files (ocilib.h etc) are located.
 rem ---------------------------------------------------------------------------
@@ -43,19 +51,20 @@ rem ---------------------------------------------------------------------------
 rem ---------------------------------------------------------------------------
 rem Compiler's bin folder location.
 rem ---------------------------------------------------------------------------
-set mingw64=C:\TDM-GCC-64\bin
+set compiler_bin_folder=e:\TDM-GCC-64\bin
 
 
 rem ---------------------------------------------------------------------------
-rem Compiler name and options.
+rem Compiler name, within its 'bin' folder, and options.
 rem ---------------------------------------------------------------------------
-set gcc=%mingw64%\x86_64-w64-mingw32-gcc
+set gcc=%compiler_bin_folder%\gcc
 set ccopts=-m64
+set bits=64
 
 rem ---------------------------------------------------------------------------
 rem Where the OCILIB system lives.
 rem ---------------------------------------------------------------------------
-set base=C:\Users\hisg494\Downloads\InstallKits\ocilib\ocilib-4.6.0-windows
+set base=E:\SourceCode\ocilib\ocilib-4.5.1-windows
 
 rem ---------------------------------------------------------------------------
 rem Assume 64bit libraries are required.
@@ -80,9 +89,10 @@ rem
 rem The 64bit compiler can produce 32 bit applications with -m32 specified.
 rem ---------------------------------------------------------------------------
 if "%1" equ "32" (
-    set mingw32=%mingw64%
+    set mingw32=%compiler_bin_folder%
     set ccopts=-m32
     set libs=%base%\lib32
+    set bits=32
 )
 
 rem ---------------------------------------------------------------------------
@@ -90,5 +100,5 @@ rem Do a compile. We need the libraries after the filenames or we get linker
 rem errors.
 rem ---------------------------------------------------------------------------
 @echo on
-%gcc% %ccopts% -o rmanBackups.exe rmanBackups.c -L %libs% -I %includes%  -l ociliba %compileOptions% 
+%gcc% %ccopts% -o rmanBackups%bits%.exe rmanBackups.c -L %libs% -I %includes%  -l ociliba %compileOptions% 
 

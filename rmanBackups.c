@@ -64,6 +64,18 @@
  * which is not open. The 'with' clause was a problem, strange, as it can
  * easily be joined as an inline view. Hmm.
  *-----------------------------------------------------------------------------
+ * 26/11/2019   Norman Dunbar   Version 1.06
+ *
+ * Amended to produce a summary of the entire list of database backups. This is
+ * only the database backups, not the archived logs, no deletions etc.
+ *-----------------------------------------------------------------------------
+ * 04/12/2019   Norman Dunbar   Version 1.07
+ *
+ * Summary listed multiple entries for the same database if there were multiple
+ * backups of said database. Only the last is required. Added link from summary
+ * of databases to full list of all backups and a count of database backups to
+ * the summary table.
+ *-----------------------------------------------------------------------------
  */
 
 
@@ -75,6 +87,10 @@ char *gDatabaseName;
 
 /* Global connection string limits. */
 #define MAX_CONNECTION_STRING 255
+
+/* Summary buffer size */
+#define SUMMARY_BUFFER_SIZE 16384
+char *summaryBuffer;
 
 
 /*
@@ -260,6 +276,22 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    /* Allocate a huge buffer for the summary table. */
+    summaryBuffer = (char *)malloc(SUMMARY_BUFFER_SIZE);
+    if (summaryBuffer == NULL) {
+        fprintf(stderr, "Cannot allocate Summary Buffer.");
+        return EXIT_FAILURE;
+    }
+
+    /* Copy the summary headers over */
+    *summaryBuffer = '\0';
+    if (!appendSummary(summaryHeadings)) {
+        /* stderr already updated. */
+        return EXIT_FAILURE;
+    }
+
+
+
     /*
      * The main loop starts here ....
      */
@@ -295,7 +327,7 @@ int main(int argc, char *argv[])
         // All good - split.
         if (splitConnectionString(current, &userName, &passWord, &databaseName, &daysAgo, &sysDBA)) {
 
-            // Update gloabal database name for errors.
+            // Update global database name for errors.
             gDatabaseName = databaseName;
 
             // Add database headings to the report.
@@ -322,6 +354,17 @@ int main(int argc, char *argv[])
      * Close the parameter file now, no longer needed.
      */
     fclose(pFile);
+
+    /*
+     * Print the report summary.
+     */
+    fprintf(stdout, summaryTitle);
+    fprintf(stdout, summaryPara);
+
+    appendSummary("</table>\n");
+
+    fprintf(stdout, "\n%s\n", summaryBuffer);
+    free(summaryBuffer);
 
     /*
      * Print the report footers.
@@ -403,9 +446,9 @@ boolean checkDatabase(const char *userName, const char *passWord, const char *da
         goto logOff;
     }
 
-    /* BEWARE: This isn't working here! It gives a warning
-     * ORA-24347: Warning of a NULL column in an aggregate function
-     * on the first row of the resultset and no output for that row.
+    /* BEWARE: This isn't working here! It gives an error:
+     * "ORA-01220: file based sort illegal before database is open"
+     * and no output if the database is a standby WITHOUT Active Data Guard.
      */
     //OCI_SetFetchMode(st, OCI_SFM_SCROLLABLE);
     // ...
@@ -435,6 +478,38 @@ boolean checkDatabase(const char *userName, const char *passWord, const char *da
      * Print database details.
      */
     HTMLDatabase(rs);
+
+
+    // Try to get a summary of this database's backups of the database only.
+    // This will be - hopefully - printed at the top of the report.
+    sprintf(SQL, SQLSummary, databaseName, daysAgo);
+
+    OCI_Statement* st2;
+    OCI_Resultset* rs2;
+
+
+    // Execute statement for summary.
+    st2 = OCI_StatementCreate(cn);
+    if (dbErrors) {
+        fprintf(stderr, "Unable to create Summary SQL query.\n\n");
+        goto logOff;
+    }
+
+    OCI_ExecuteStmt(st2, SQL);
+    if (dbErrors) {
+        fprintf(stderr, "Unable to execute Summary SQL query.\n\n");
+        goto logOff;
+    }
+
+    // Get results.
+    rs2 = OCI_GetResultset(st2);
+    if (dbErrors) {
+        fprintf(stderr, "Unable to fetch Summary query results.\n\n");
+        goto logOff;
+    }
+
+    // Save results.
+    HTMLSummary(rs2);
 
 logOff:
     /*
@@ -472,7 +547,7 @@ void HTMLDatabaseHeading(const char *database, const char *days) {
     /*
      * Print the Database header and introduction.
      */
-    fprintf(stdout, dbHeading, database);
+    fprintf(stdout, dbHeading, database, database);
     fprintf(stdout, dbParagraph, days, (strcmp(days, "1") ? "s" : ""));
 }
 
@@ -532,3 +607,90 @@ void HTMLDatabase(OCI_Resultset* rs) {
             "</table>\n"
            );
 }
+
+
+/*
+ * Save the details of database backup summary.
+ */
+void HTMLSummary(OCI_Resultset* rs) {
+
+    char tempBuffer[2048] = "\0";
+    unsigned char backupCount = 0;
+
+    /*
+     * Scan the results and print the details. If a database has more than
+     * one backup in the past 24 hours, we can only put an anchor on the
+     * start of the table, so no need to have multiple entries in the summary
+     * table - which links back to the full table of all backups for the database.
+     * So, we only pull the last row for each database.
+     */
+    while (OCI_FetchNext(rs))
+    {
+        const char *status = OCI_GetString2(rs, "STATUS");
+        char class[10] = {"normal"};
+
+        /* Wipe the buffer each time around. */
+        tempBuffer[0] = '\0';
+        backupCount++;
+
+        /*
+         * RAG status.
+         */
+        if (!strcmp("COMPLETED", status)) {
+            /* GREEN = All OK. No further action. */
+            strcpy(class, "green");
+        } else {
+            if (strstr(status, "WARNINGS") || !strcmp("RUNNING", status)) {
+                /* AMBER = OK, so far, or WARNINGs reported. Check again later. */
+                strcpy(class, "amber");
+            }  else {
+                if (strstr(status, "ERRORS") || !strcmp("FAILED", status)) {
+                    /* RED = Failed or ERRORs reported. Raise incident. */
+                    strcpy(class, "red");
+                }
+            }
+        }
+
+        sprintf(tempBuffer,
+                summaryRow,
+                gDatabaseName,
+                OCI_GetString2(rs, "DATABASE"),
+                backupCount,
+                OCI_GetInt2(rs, "JOB_ID"),
+                OCI_GetString2(rs, "RMAN_COMMAND"),
+                class, status,
+                OCI_GetString2(rs, "START_TIME"),
+                OCI_GetString2(rs, "END_TIME"),
+                OCI_GetString2(rs, "RUN_TIME"),
+                OCI_GetString2(rs, "INPUT_SIZE"),
+                OCI_GetString2(rs, "WRITTEN_SIZE")
+               );
+    }
+
+    /* The last row is still in the buffer. */
+    if (!tempBuffer[0] == '\0') {
+        appendSummary(tempBuffer);
+    }
+
+}
+
+
+/*
+ * A function to safely append two strings together.
+ * In the event that the destination is not big enough, it will be truncated.
+ * This is used for the summaryBuffer which is limited to SUMMARY_BUFFER_SIZE characters.
+ */
+boolean appendSummary(const char *source)
+{
+    size_t currentSpace = strlen(summaryBuffer);
+    if (currentSpace >= SUMMARY_BUFFER_SIZE) {
+        fprintf(stderr, "Summary Buffer full up. Only %d characters permitted\n", SUMMARY_BUFFER_SIZE);
+        return FALSE;
+    }
+
+    /* This will truncate as required. */
+    strncat(summaryBuffer, source, SUMMARY_BUFFER_SIZE - currentSpace);
+    summaryBuffer[strlen(summaryBuffer)] = '\0';
+    return TRUE;
+}
+

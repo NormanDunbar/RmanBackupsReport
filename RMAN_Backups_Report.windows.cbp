@@ -17,7 +17,7 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
-				<Option parameters="misa01p1 pnet01p1 c##oci_misa myhermes bilbo4327 1" />
+				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-g" />
 					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
@@ -32,7 +32,7 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
-				<Option parameters="E:\SourceCode\RMANBackupsReport\bin\Release\logons.txt" />
+				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
@@ -43,9 +43,45 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 					<Add directory="../ocilib/ocilib-4.5.1-windows/lib64" />
 				</Linker>
 			</Target>
+			<Target title="Debug 32">
+				<Option output="bin/Debug32/rmanBackups32" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug32/" />
+				<Option type="1" />
+				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
+				<Compiler>
+					<Add option="-m32" />
+					<Add option="-g" />
+					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add library="libociliba.a" />
+					<Add directory="../ocilib/ocilib-4.5.1-windows/lib32" />
+				</Linker>
+			</Target>
+			<Target title="Release 32">
+				<Option output="bin/Release32/rmanBackups32" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release32/" />
+				<Option type="1" />
+				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-m32" />
+					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add library="libociliba.a" />
+					<Add directory="../ocilib/ocilib-4.5.1-windows/lib32" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c11" />
 		</Compiler>
 		<Unit filename="Example.png" />
 		<Unit filename="SourceCode.docx" />
