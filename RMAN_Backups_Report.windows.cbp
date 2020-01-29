@@ -4,19 +4,27 @@
 	<Project>
 		<Option title="RMAN Backups Report" />
 		<Option pch_mode="2" />
-		<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+		<Option compiler="tdm_gcc_64bit_compiler" />
 		<Option show_notes="0">
 			<notes>
 				<![CDATA[This project requires the OCILIB static library libociliba.lib in order to compile.
 At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 			</notes>
 		</Option>
+		<MakeCommands>
+			<Build command="" />
+			<CompileFile command="" />
+			<Clean command="" />
+			<DistClean command="" />
+			<AskRebuildNeeded command="" />
+			<SilentBuild command=" &gt; $(CMD_NULL)" />
+		</MakeCommands>
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/rmanBackups" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option compiler="tdm_gcc_64bit_compiler" />
 				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-g" />
@@ -24,14 +32,14 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				</Compiler>
 				<Linker>
 					<Add library="libociliba.a" />
-					<Add directory="../ocilib/ocilib-4.5.1-windows/lib64" />
+					<Add directory="../ocilib/ocilib-4.6.0-windows/lib64" />
 				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/rmanBackups" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
-				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option compiler="tdm_gcc_64bit_compiler" />
 				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-O2" />
@@ -40,19 +48,19 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				<Linker>
 					<Add option="-s" />
 					<Add library="libociliba.a" />
-					<Add directory="../ocilib/ocilib-4.5.1-windows/lib64" />
+					<Add directory="../ocilib/ocilib-4.6.0-windows/lib64" />
 				</Linker>
 			</Target>
 			<Target title="Debug 32">
 				<Option output="bin/Debug32/rmanBackups32" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug32/" />
 				<Option type="1" />
-				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option compiler="tdm_gcc_64bit_compiler" />
 				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-m32" />
 					<Add option="-g" />
-					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
+					<Add directory="../ocilib/ocilib-4.6.0-windows/lib32" />
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
@@ -64,12 +72,12 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				<Option output="bin/Release32/rmanBackups32" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release32/" />
 				<Option type="1" />
-				<Option compiler="tdm_gnu_gcc_64bit_compiler_" />
+				<Option compiler="tdm_gcc_64bit_compiler" />
 				<Option parameters="C:\Users\hisg494\utilities\logons.txt" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-m32" />
-					<Add directory="../ocilib/ocilib-4.5.1-windows/include" />
+					<Add directory="../ocilib/ocilib-4.6.0-windows/lib32" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -79,10 +87,6 @@ At run time, only, the Oracle supplied oci.dll must be on the PATH.]]>
 				</Linker>
 			</Target>
 		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-			<Add option="-std=c11" />
-		</Compiler>
 		<Unit filename="Example.png" />
 		<Unit filename="SourceCode.docx" />
 		<Unit filename="SourceCode.rst" />
